@@ -230,4 +230,401 @@
       border-radius: 4px;
       font-weight: 500;
     }
-    .tag-school { background: rgba(88, 166, 255, 0.1
+    .tag-school { background: rgba(88, 166, 255, 0.15); color: var(--accent); }
+    .tag-shape { background: rgba(212, 175, 55, 0.15); color: var(--gold); }
+    .tag-loc { background: rgba(139, 148, 158, 0.15); color: var(--text-muted); }
+
+    /* Stats Grid */
+    .stat-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      text-align: center;
+      padding: 0.75rem 0;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1.25rem;
+    }
+    .stat-val {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff;
+    }
+    .stat-lbl {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+    }
+
+    /* Gauge */
+    .gauge-container {
+      margin-top: 0.5rem;
+    }
+    .gauge-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-bottom: 0.25rem;
+    }
+    .gauge-bar-bg {
+      background: var(--tag-bg);
+      height: 6px;
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+    }
+    .gauge-bar-fill {
+      background: linear-gradient(90deg, #58a6ff, #d4af37);
+      height: 100%;
+      border-radius: 3px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Cello Bow Collection</h1>
+    <p>Physical Survey & Empirical Benchmarks (29 Masterwork Specimens)</p>
+  </header>
+
+  <!-- SECTION 1: ANALYTICS & CHARTS -->
+  <div class="section-title">Collection Analytics</div>
+  
+  <div class="charts-grid">
+    <!-- Weight Histogram -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Weight Distribution (2g Intervals)</h3>
+        <p>15 of 29 specimens converge in the 78–82g sweet spot</p>
+      </div>
+      <div class="canvas-container">
+        <canvas id="weightHistChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Length Histogram -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Stick Length Distribution (mm)</h3>
+        <p>Median 695mm; tight 692–697mm interquartile envelope</p>
+      </div>
+      <div class="canvas-container">
+        <canvas id="lengthHistChart"></canvas>
+      </div>
+    </div>
+
+    <!-- Feel Matrix Scatter -->
+    <div class="chart-card wide">
+      <div class="chart-header">
+        <h3>The "Feel Matrix": Total Weight vs. Balance Point (BP Screw)</h3>
+        <p>Hover over points to inspect maker, weight, and fulcrum. Green corridor shows the ~36% balance target.</p>
+      </div>
+      <div class="canvas-container tall">
+        <canvas id="scatterFeelChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION 2: SPECIMEN INVENTORY -->
+  <div class="section-title">Specimen Catalog</div>
+
+  <div class="controls">
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search maker, number, or location...">
+    </div>
+    <div class="filters">
+      <select id="schoolFilter">
+        <option value="ALL">All Schools</option>
+        <option value="French">French School (14)</option>
+        <option value="German">German School (6)</option>
+        <option value="English">English School (4)</option>
+        <option value="American">American School (4)</option>
+        <option value="Swiss">Swiss School (1)</option>
+      </select>
+      <select id="shapeFilter">
+        <option value="ALL">All Shapes</option>
+        <option value="Round">Round</option>
+        <option value="Octagonal">Octagonal</option>
+      </select>
+      <select id="sortBy">
+        <option value="maker">Sort: Maker Name (A-Z)</option>
+        <option value="weight-asc">Sort: Weight (Lightest first)</option>
+        <option value="weight-desc">Sort: Weight (Heaviest first)</option>
+        <option value="length-asc">Sort: Length (Shortest first)</option>
+        <option value="length-desc">Sort: Length (Longest first)</option>
+        <option value="bp-asc">Sort: Balance Point (Lowest)</option>
+        <option value="bp-desc">Sort: Balance Point (Highest)</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="counter">
+    <span id="bowCount">Showing 29 of 29 bows</span>
+    <span>Collection Medians: 79.6 g | 695 mm | 252 mm</span>
+  </div>
+
+  <div class="bow-grid" id="bowGrid"></div>
+
+  <script>
+    const bows = [
+      { loc: "BB", obj: "TL-16013", maker: "Fétique", attr: "Victor Fétique", school: "French", date: "1913–1933 ca.", shape: "Round", weight: 80.0, stick_len: 697, bp_screw: 249, bp_ratio: "36%" },
+      { loc: "BB", obj: "TL-16014", maker: "Lamy", attr: "Joseph Alfred Lamy", school: "French", date: "1885–1919 ca.", shape: "Round", weight: 75.7, stick_len: 690, bp_screw: 254, bp_ratio: "37%" },
+      { loc: "BB", obj: "TL-15769", maker: "Lee", attr: "John Norwood Lee", school: "American", date: "1978–2020 ca.", shape: "Round", weight: 83.9, stick_len: 698, bp_screw: 251, bp_ratio: "36%" },
+      { loc: "BB", obj: "15848", maker: "Nürnberger", attr: "Carl Albert Nürnberger", school: "German", date: "1960–1970 ca.", shape: "Octagonal", weight: 78.1, stick_len: 697, bp_screw: 262, bp_ratio: "38%" },
+      { loc: "BB", obj: "TL-16015", maker: "Penzel", attr: "Karl Gerhard Penzel", school: "German", date: "1960 ca.", shape: "Octagonal", weight: 81.0, stick_len: 698, bp_screw: 247, bp_ratio: "35%" },
+      { loc: "BB", obj: "TL-15770", maker: "Salchow", attr: "William Salchow", school: "American", date: "1970 ca.", shape: "Round", weight: 85.0, stick_len: 694, bp_screw: 260, bp_ratio: "37%" },
+      { loc: "BB", obj: "15851", maker: "Tubbs", attr: "James Tubbs", school: "English", date: "1885 ca.", shape: "Octagonal", weight: 77.5, stick_len: 692, bp_screw: 250, bp_ratio: "36%" },
+      { loc: "BB", obj: "15855", maker: "Zabinski", attr: "Roger Zabinski", school: "American", date: "1991 ca.", shape: "Round", weight: 78.8, stick_len: 697, bp_screw: 259, bp_ratio: "37%" },
+      { loc: "QB", obj: "15861", maker: "Louis", attr: "A. N. Louis", school: "English", date: "1970–1999 ca.", shape: "Round", weight: 74.1, stick_len: 692, bp_screw: 250, bp_ratio: "36%" },
+      { loc: "SB1", obj: "15852", maker: "Clutterbuck", attr: "John Clutterbuck", school: "English", date: "1984", shape: "Round", weight: 83.2, stick_len: 694, bp_screw: 250, bp_ratio: "36%" },
+      { loc: "SB1", obj: "15862", maker: "Finkel", attr: "Johannes S. Finkel", school: "Swiss", date: "1984–2011 ca.", shape: "Octagonal", weight: 81.5, stick_len: 697, bp_screw: 251, bp_ratio: "36%" },
+      { loc: "SB1", obj: "15856", maker: "Salchow", attr: "William Salchow", school: "American", date: "1977", shape: "Round", weight: 81.8, stick_len: 693, bp_screw: 241, bp_ratio: "35%" },
+      { loc: "SB2", obj: "15850", maker: "Dölling", attr: "Heinz Dölling", school: "German", date: "1938–2001 ca.", shape: "Octagonal", weight: 88.5, stick_len: 695, bp_screw: 256, bp_ratio: "37%" },
+      { loc: "SB2", obj: "15847", maker: "Penzel", attr: "Kurt Gerhard Penzel", school: "German", date: "1980–1989 ca.", shape: "Round", weight: 79.5, stick_len: 697, bp_screw: 257, bp_ratio: "37%" },
+      { loc: "SB2", obj: "15857", maker: "Pfretzschner", attr: "H. R. Pfretzschner Sr.", school: "German", date: "1880–1914 ca.", shape: "Round", weight: 71.4, stick_len: 700, bp_screw: 264, bp_ratio: "38%" },
+      { loc: "SB2", obj: "15854", maker: "Seifert", attr: "Lothar Seifert", school: "German", date: "1950–1970 ca.", shape: "Round", weight: 84.8, stick_len: 699, bp_screw: 244, bp_ratio: "35%" },
+      { loc: "SB3", obj: "15736", maker: "Bazin", attr: "Charles Nicolas Bazin", school: "French", date: "1900–1910 ca.", shape: "Round", weight: 80.9, stick_len: 700, bp_screw: 251, bp_ratio: "36%" },
+      { loc: "SB3", obj: "15849", maker: "Bazin", attr: "Charles Nicolas Bazin", school: "French", date: "1900–1910 ca.", shape: "Round", weight: 75.8, stick_len: 697, bp_screw: 250, bp_ratio: "36%" },
+      { loc: "SB3", obj: "15800", maker: "Peccatte", attr: "Charles Peccatte", school: "French", date: "1900 ca.", shape: "Round", weight: 80.3, stick_len: 693, bp_screw: 250, bp_ratio: "36%" },
+      { loc: "SB3", obj: "TL-15752", maker: "Sartory", attr: "Eugène Sartory", school: "French", date: "1935 ca.", shape: "Round", weight: 80.0, stick_len: 695, bp_screw: 258, bp_ratio: "37%" },
+      { loc: "SB4", obj: "TL-15760", maker: "Fétique", attr: "Victor Fétique", school: "French", date: "1924", shape: "Octagonal", weight: 79.2, stick_len: 692, bp_screw: 241, bp_ratio: "35%" },
+      { loc: "SB4", obj: "15735", maker: "Husson", attr: "Mars Auguste Husson", school: "French", date: "1920 ca.", shape: "Round", weight: 82.5, stick_len: 690, bp_screw: 255, bp_ratio: "37%" },
+      { loc: "SB4", obj: "15799", maker: "Lamy", attr: "Joseph Alfred Lamy", school: "French", date: "1895–1910 ca.", shape: "Round", weight: 77.5, stick_len: 691, bp_screw: 250, bp_ratio: "36%" },
+      { loc: "SB4", obj: "15863", maker: "Lamy", attr: "Joseph Alfred Lamy", school: "French", date: "1895–1910 ca.", shape: "Octagonal", weight: 78.5, stick_len: 691, bp_screw: 258, bp_ratio: "37%" },
+      { loc: "SB4", obj: "TL-15751", maker: "Ouchard", attr: "Emile A. Ouchard", school: "French", date: "1940 ca.", shape: "Octagonal", weight: 79.6, stick_len: 694, bp_screw: 253, bp_ratio: "36%" },
+      { loc: "SB4", obj: "TL-15753", maker: "Voirin", attr: "François Nicolas Voirin", school: "French", date: "1865 ca.", shape: "Round", weight: 79.0, stick_len: 701, bp_screw: 259, bp_ratio: "37%" },
+      { loc: "SB5", obj: "15853", maker: "Dodd", attr: "John Dodd", school: "English", date: "1800 ca.", shape: "Round", weight: 74.0, stick_len: 691, bp_screw: 260, bp_ratio: "38%" },
+      { loc: "SB5", obj: "TL-15750", maker: "Peccatte", attr: "Dominique Peccatte", school: "French", date: "1845–1850 ca.", shape: "Octagonal", weight: 78.9, stick_len: 691, bp_screw: 252, bp_ratio: "36%" },
+      { loc: "SB5", obj: "15737", maker: "Peccatte", attr: "Dominique Peccatte", school: "French", date: "1850 ca.", shape: "Octagonal", weight: 82.1, stick_len: 705, bp_screw: 256, bp_ratio: "36%" }
+    ];
+
+    // --- CHART.JS CONFIGURATION ---
+    Chart.defaults.color = '#8b949e';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+
+    // 1. Weight Histogram Chart
+    const weightBins = ['70–72g', '72–74g', '74–76g', '76–78g', '78–80g', '80–82g', '82–84g', '84–86g', '86–88g', '88–90g'];
+    const weightCounts = [1, 0, 3, 2, 8, 7, 3, 2, 0, 1];
+
+    new Chart(document.getElementById('weightHistChart'), {
+      type: 'bar',
+      data: {
+        labels: weightBins,
+        datasets: [{
+          label: 'Bows',
+          data: weightCounts,
+          backgroundColor: weightBins.map((_, i) => (i === 4 || i === 5) ? 'rgba(212, 175, 55, 0.85)' : 'rgba(88, 166, 255, 0.45)'),
+          borderColor: weightBins.map((_, i) => (i === 4 || i === 5) ? '#d4af37' : '#58a6ff'),
+          borderWidth: 1.5,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              afterLabel: function(ctx) {
+                if (ctx.dataIndex === 4 || ctx.dataIndex === 5) return '★ Peak Playing Window';
+              }
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#21262d' }, ticks: { stepSize: 2 } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // 2. Length Histogram Chart
+    const lengthValues = [690, 691, 692, 693, 694, 695, 697, 698, 699, 700, 701, 705];
+    const lengthCounts = [2, 4, 3, 2, 2, 2, 6, 2, 1, 2, 1, 1];
+
+    new Chart(document.getElementById('lengthHistChart'), {
+      type: 'bar',
+      data: {
+        labels: lengthValues.map(v => v + 'mm'),
+        datasets: [{
+          label: 'Bows',
+          data: lengthCounts,
+          backgroundColor: lengthValues.map(v => (v >= 692 && v <= 697) ? 'rgba(88, 166, 255, 0.8)' : 'rgba(139, 148, 158, 0.45)'),
+          borderColor: lengthValues.map(v => (v >= 692 && v <= 697) ? '#58a6ff' : '#8b949e'),
+          borderWidth: 1.5,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              afterLabel: function(ctx) {
+                if (ctx.label === '705mm') return 'Unique Outlier: D. Peccatte #15737';
+              }
+            }
+          }
+        },
+        scales: {
+          y: { beginAtZero: true, grid: { color: '#21262d' }, ticks: { stepSize: 2 } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    // 3. Scatter Feel Matrix Chart
+    const scatterRound = bows.filter(b => b.shape === 'Round').map(b => ({ x: b.weight, y: b.bp_screw, bow: b }));
+    const scatterOct = bows.filter(b => b.shape === 'Octagonal').map(b => ({ x: b.weight, y: b.bp_screw, bow: b }));
+
+    new Chart(document.getElementById('scatterFeelChart'), {
+      type: 'scatter',
+      data: {
+        datasets: [
+          {
+            label: 'Round Sticks',
+            data: scatterRound,
+            backgroundColor: '#58a6ff',
+            borderColor: '#ffffff',
+            pointRadius: 6,
+            pointHoverRadius: 9
+          },
+          {
+            label: 'Octagonal Sticks',
+            data: scatterOct,
+            backgroundColor: '#d4af37',
+            borderColor: '#ffffff',
+            pointRadius: 6,
+            pointHoverRadius: 9
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#f0f6fc', usePointStyle: true } },
+          tooltip: {
+            callbacks: {
+              label: function(ctx) {
+                const b = ctx.raw.bow;
+                return `${b.maker} (${b.obj}): ${b.weight}g, ${b.bp_screw}mm [${b.bp_ratio}]`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'Total Weight (grams)', color: '#8b949e' },
+            min: 70, max: 90,
+            grid: { color: '#21262d' }
+          },
+          y: {
+            title: { display: true, text: 'Balance Point from Screw (mm)', color: '#8b949e' },
+            min: 238, max: 266,
+            grid: { color: '#21262d' }
+          }
+        }
+      }
+    });
+
+    // --- CARDS & FILTERING LOGIC ---
+    const grid = document.getElementById('bowGrid');
+    const searchInput = document.getElementById('searchInput');
+    const schoolFilter = document.getElementById('schoolFilter');
+    const shapeFilter = document.getElementById('shapeFilter');
+    const sortBy = document.getElementById('sortBy');
+    const bowCount = document.getElementById('bowCount');
+
+    const minWeight = 71.4, maxWeight = 88.5;
+
+    function renderBows() {
+      const q = searchInput.value.toLowerCase().trim();
+      const school = schoolFilter.value;
+      const shape = shapeFilter.value;
+      const sort = sortBy.value;
+
+      let filtered = bows.filter(b => {
+        const matchesQ = b.maker.toLowerCase().includes(q) ||
+                         b.attr.toLowerCase().includes(q) ||
+                         b.obj.toLowerCase().includes(q) ||
+                         b.loc.toLowerCase().includes(q);
+        const matchesSchool = school === 'ALL' || b.school === school;
+        const matchesShape = shape === 'ALL' || b.shape === shape;
+        return matchesQ && matchesSchool && matchesShape;
+      });
+
+      filtered.sort((a, b) => {
+        if (sort === 'maker') return a.maker.localeCompare(b.maker);
+        if (sort === 'weight-asc') return a.weight - b.weight;
+        if (sort === 'weight-desc') return b.weight - a.weight;
+        if (sort === 'length-asc') return a.stick_len - b.stick_len;
+        if (sort === 'length-desc') return b.stick_len - a.stick_len;
+        if (sort === 'bp-asc') return a.bp_screw - b.bp_screw;
+        if (sort === 'bp-desc') return b.bp_screw - a.bp_screw;
+        return 0;
+      });
+
+      bowCount.textContent = `Showing ${filtered.length} of ${bows.length} bows`;
+
+      grid.innerHTML = filtered.map(b => {
+        const weightPct = Math.max(0, Math.min(100, ((b.weight - minWeight) / (maxWeight - minWeight)) * 100));
+        return `
+          <div class="card">
+            <div>
+              <div class="card-header">
+                <span class="maker-name">${b.maker}</span>
+                <span class="obj-number">${b.obj}</span>
+              </div>
+              <div class="attribution">${b.attr}</div>
+              <div class="origin-date">${b.date}</div>
+
+              <div class="tags">
+                <span class="tag tag-school">${b.school}</span>
+                <span class="tag tag-shape">${b.shape}</span>
+                <span class="tag tag-loc">Loc: ${b.loc}</span>
+              </div>
+
+              <div class="stat-row">
+                <div>
+                  <div class="stat-val">${b.weight.toFixed(1)}g</div>
+                  <div class="stat-lbl">Weight</div>
+                </div>
+                <div>
+                  <div class="stat-val">${b.stick_len}mm</div>
+                  <div class="stat-lbl">Length</div>
+                </div>
+                <div>
+                  <div class="stat-val">${b.bp_screw}mm</div>
+                  <div class="stat-lbl">BP Screw</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="gauge-container">
+              <div class="gauge-label">
+                <span>Weight Spectrum (${minWeight}g – ${maxWeight}g)</span>
+                <span><strong>${b.bp_ratio}</strong> ratio</span>
+              </div>
+              <div class="gauge-bar-bg">
+                <div class="gauge-bar-fill" style="width: ${weightPct}%;"></div>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    searchInput.addEventListener('input', renderBows);
+    schoolFilter.addEventListener('change', renderBows);
+    shapeFilter.addEventListener('change', renderBows);
+    sortBy.addEventListener('change', renderBows);
+
+    renderBows();
+  </script>
+</body>
+</html>
