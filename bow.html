@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bow Specification Card | Cello Bow Collection</title>
+  <script src="data.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --panel-bg: #1c2128;
+      --border: #30363d;
+      --gold: #d4af37;
+      --gold-dim: #997b24;
+      --text-main: #f0f6fc;
+      --text-muted: #8b949e;
+      --tag-bg: #21262d;
+      --blue: #58a6ff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      padding: 1.75rem 1rem 3rem 1rem;
+      line-height: 1.5;
+    }
+    .container { max-width: 1180px; margin: 0 auto; }
+
+    /* Top Nav Bar */
+    .top-nav {
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center;
+      gap: 1rem; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);
+    }
+    .nav-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: var(--card-bg); border: 1px solid var(--border); color: var(--text-main);
+      text-decoration: none; padding: 0.5rem 0.95rem; border-radius: 6px; font-size: 0.85rem;
+      transition: border-color 0.15s ease, color 0.15s ease;
+    }
+    .nav-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .nav-group { display: flex; gap: 0.5rem; }
+
+    /* Header Banner */
+    .hero-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1.75rem; margin-bottom: 1.5rem;
+      display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 1rem;
+    }
+    .hero-title {
+      font-family: Georgia, "Times New Roman", serif; font-size: 2rem; color: var(--gold);
+      line-height: 1.2; margin-bottom: 0.35rem;
+    }
+    .hero-sub { font-size: 1rem; color: var(--text-main); margin-bottom: 0.25rem; }
+    .hero-geo { font-size: 0.85rem; color: var(--text-muted); }
+    .badges { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .badge {
+      font-size: 0.78rem; font-weight: 600; padding: 0.35rem 0.75rem; border-radius: 5px;
+      border: 1px solid var(--border); background: var(--tag-bg);
+    }
+    .badge-obj { color: var(--gold); border-color: var(--gold-dim); }
+    .badge-school { color: var(--blue); background: rgba(88, 166, 255, 0.12); border-color: rgba(88, 166, 255, 0.3); }
+    .badge-shape { color: var(--gold); background: rgba(212, 175, 55, 0.12); border-color: rgba(212, 175, 55, 0.3); }
+    .badge-loc { color: var(--text-muted); }
+
+    /* Main 2-Column Layout */
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(320px, 460px) 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+    @media (max-width: 900px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    /* Left Column: Stacked Photo Plate */
+    .photo-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 1rem; position: sticky; top: 1rem;
+    }
+    .photo-header {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 0.75rem; font-size: 0.8rem; color: var(--text-muted);
+    }
+    .photo-frame {
+      width: 100%; border-radius: 6px; overflow: hidden; border: 1px solid var(--border);
+      background: #121417; cursor: zoom-in;
+    }
+    .photo-frame img {
+      width: 100%; height: auto; display: block;
+    }
+    .photo-caption {
+      margin-top: 0.65rem; font-size: 0.75rem; color: var(--text-muted); text-align: center;
+    }
+    .missing-img {
+      padding: 3rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.85rem;
+    }
+
+    /* Right Column: KPIs & Spec Tables */
+    .specs-col { display: flex; flex-direction: column; gap: 1.25rem; }
+
+    .kpi-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 0.9rem;
+    }
+    .kpi-box {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 8px; padding: 1rem;
+    }
+    .kpi-lbl { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+    .kpi-val { font-size: 1.45rem; font-weight: 700; color: #fff; margin: 0.2rem 0; }
+    .kpi-sub { font-size: 0.74rem; color: var(--text-muted); margin-bottom: 0.5rem; }
+    .bar-bg { background: var(--tag-bg); height: 6px; border-radius: 3px; overflow: hidden; }
+    .bar-fill { background: linear-gradient(90deg, #58a6ff, #d4af37); height: 100%; border-radius: 3px; }
+
+    .table-card {
+      background: var(--card-bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.25rem;
+    }
+    .table-title {
+      font-family: Georgia, "Times New Roman", serif; font-size: 1.05rem; color: var(--gold);
+      margin-bottom: 0.85rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .table-title span { font-family: -apple-system, sans-serif; font-size: 0.75rem; color: var(--text-muted); font-weight: 400; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
+    td { padding: 0.52rem 0.4rem; border-bottom: 1px solid rgba(48, 54, 61, 0.6); }
+    tr:last-child td { border-bottom: none; }
+    td.lbl { color: var(--text-muted); }
+    td.val { text-align: right; font-weight: 600; color: var(--text-main); font-variant-numeric: tabular-nums; }
+    td.bench { text-align: right; font-size: 0.76rem; color: var(--text-muted); width: 110px; }
+
+    .two-tables { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+    @media (max-width: 650px) { .two-tables { grid-template-columns: 1fr; } }
+
+    /* Fullscreen Lightbox */
+    .lightbox {
+      display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92);
+      z-index: 999; overflow-y: auto; padding: 2rem 1rem; text-align: center; cursor: zoom-out;
+    }
+    .lightbox.open { display: block; }
+    .lightbox img { max-width: 1400px; width: 100%; height: auto; border-radius: 6px; border: 1px solid var(--border); }
+  </style>
+</head>
+<body>
+  <div class="container" id="app"></div>
+
+  <div class="lightbox" id="lightbox" onclick="this.classList.remove('open')">
+    <img id="lightboxImg" src="" alt="Full Resolution Composite">
+  </div>
+
+  <script>
+    function renderCard() {
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      const sorted = [...BOWS_DATA].sort((a, b) => a.maker.localeCompare(b.maker) || a.obj.localeCompare(b.obj));
+      let idx = sorted.findIndex(b => b.id === id || b.obj === id);
+      if (idx === -1) idx = 0;
+
+      const b = sorted[idx];
+      const prev = sorted[(idx - 1 + sorted.length) % sorted.length];
+      const next = sorted[(idx + 1) % sorted.length];
+
+      document.title = `${b.maker} (${b.obj}) | Cello Bow Collection`;
+
+      // Collection bounds for benchmark bars
+      const pct = (val, min, max) => Math.max(4, Math.min(100, ((val - min) / (max - min)) * 100)).toFixed(1);
+      const wPct = pct(b.weight, 71.4, 88.5);
+      const lPct = pct(b.stick_len, 690, 705);
+      const bpPct = pct(b.bp_screw, 241, 264);
+      const swPct = pct(b.screw_wt, 4.8, 7.5);
+
+      const handleArea = (b.handle_tb * b.handle_ss).toFixed(1);
+      const tipArea = (b.tip_tb * b.tip_ss).toFixed(1);
+      const taperPct = (((b.handle_tb - b.tip_tb) / b.handle_tb) * 100).toFixed(1);
+      const fittingsShare = (((b.frog_screw_wt) / b.weight) * 100).toFixed(1);
+
+      document.getElementById('app').innerHTML = `
+        <div class="top-nav">
+          <a href="index.html" class="nav-btn">← Back to Collection</a>
+          <div class="nav-group">
+            <a href="bow.html?id=${encodeURIComponent(prev.id)}" class="nav-btn">‹ ${prev.maker} (${prev.obj})</a>
+            <a href="bow.html?id=${encodeURIComponent(next.id)}" class="nav-btn">${next.maker} (${next.obj}) ›</a>
+          </div>
+        </div>
+
+        <div class="hero-card">
+          <div>
+            <h1 class="hero-title">${b.attr}</h1>
+            <div class="hero-sub">${b.maker} — ${b.date}</div>
+            <div class="hero-geo">${b.geo}</div>
+          </div>
+          <div class="badges">
+            <span class="badge badge-obj">Cat. ${b.obj}</span>
+            <span class="badge badge-school">${b.school} School</span>
+            <span class="badge badge-shape">${b.shape}</span>
+            <span class="badge badge-loc">Vault: ${b.loc}</span>
+          </div>
+        </div>
+
+        <div class="main-grid">
+          <!-- Left: High-Res 3-Angle Stacked Composite -->
+          <div class="photo-card">
+            <div class="photo-header">
+              <span>High-Res 3-Angle Composite</span>
+              <span>Click image to zoom</span>
+            </div>
+            <div class="photo-frame" onclick="openZoom('${b.img}')">
+              <img src="${b.img}" alt="${b.attr} (${b.obj})"
+                   onerror="this.parentElement.innerHTML='<div class=missing-img>Composite image not found at:<br><code>${b.img}</code></div>'">
+            </div>
+            <div class="photo-caption">Top: Frog Profile · Middle: Frog 3/4 View · Bottom: Head Profile</div>
+          </div>
+
+          <!-- Right: All 34 Measurements & Collection Benchmarks -->
+          <div class="specs-col">
+            <div class="kpi-grid">
+              <div class="kpi-box">
+                <div class="kpi-lbl">Total Weight</div>
+                <div class="kpi-val">${b.weight.toFixed(1)} g</div>
+                <div class="kpi-sub">Coll. Median: 79.6 g</div>
+                <div class="bar-bg"><div class="bar-fill" style="width:${wPct}%"></div></div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-lbl">Stick Length</div>
+                <div class="kpi-val">${b.stick_len.toFixed(0)} mm</div>
+                <div class="kpi-sub">Coll. Median: 695 mm</div>
+                <div class="bar-bg"><div class="bar-fill" style="width:${lPct}%"></div></div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-lbl">BP (From Screw)</div>
+                <div class="kpi-val">${b.bp_screw.toFixed(0)} mm</div>
+                <div class="kpi-sub">Ratio: ${(b.bp_screw_ratio * 100).toFixed(1)}% (Med. 252)</div>
+                <div class="bar-bg"><div class="bar-fill" style="width:${bpPct}%"></div></div>
+              </div>
+              <div class="kpi-box">
+                <div class="kpi-lbl">Screw Weight</div>
+                <div class="kpi-val">${b.screw_wt.toFixed(1)} g</div>
+                <div class="kpi-sub">Coll. Median: 5.7 g</div>
+                <div class="bar-bg"><div class="bar-fill" style="width:${swPct}%"></div></div>
+              </div>
+            </div>
+
+            <!-- Mass & Balance Breakdown -->
+            <div class="table-card">
+              <div class="table-title">Mass Distribution & Balance Points <span>Collection Medians Shown</span></div>
+              <table>
+                <tr><td class="lbl">Total Playing Weight</td><td class="val">${b.weight.toFixed(1)} g</td><td class="bench">Med: 79.6 g</td></tr>
+                <tr><td class="lbl">Bare Stick Weight (Only Stick)</td><td class="val">${b.stick_wt.toFixed(1)} g</td><td class="bench">Med: 54.5 g</td></tr>
+                <tr><td class="lbl">Frog Weight (Unmounted)</td><td class="val">${b.frog_wt.toFixed(1)} g</td><td class="bench">Med: 18.0 g</td></tr>
+                <tr><td class="lbl">Frog + Screw Combined Weight</td><td class="val">${b.frog_screw_wt.toFixed(1)} g (${fittingsShare}%)</td><td class="bench">Med: 24.4 g</td></tr>
+                <tr><td class="lbl">Adjuster Screw Weight</td><td class="val">${b.screw_wt.toFixed(1)} g</td><td class="bench">Med: 5.7 g</td></tr>
+                <tr><td class="lbl">Balance Point — Bare Stick</td><td class="val">${b.bp_stick.toFixed(0)} mm (Ratio: ${b.bp_stick_ratio.toFixed(4)})</td><td class="bench">Med: 235 mm</td></tr>
+                <tr><td class="lbl">Balance Point — With Screw</td><td class="val">${b.bp_screw.toFixed(0)} mm (Ratio: ${b.bp_screw_ratio.toFixed(4)})</td><td class="bench">Med: 252 mm</td></tr>
+              </table>
+            </div>
+
+            <!-- Stick & Head vs Frog Dimensions -->
+            <div class="two-tables">
+              <div class="table-card">
+                <div class="table-title">Stick & Head Graduations</div>
+                <table>
+                  <tr><td class="lbl">Stick Length</td><td class="val">${b.stick_len.toFixed(0)} mm</td></tr>
+                  <tr><td class="lbl">Head Height</td><td class="val">${b.head_h.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Head Width (Bottom)</td><td class="val">${b.head_w.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Near Tip (T–B × S–S)</td><td class="val">${b.tip_tb.toFixed(1)} × ${b.tip_ss.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Near Middle (T–B × S–S)</td><td class="val">${b.mid_tb.toFixed(1)} × ${b.mid_ss.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">End of Handle (T–B × S–S)</td><td class="val">${b.handle_tb.toFixed(1)} × ${b.handle_ss.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">T–B Taper (Handle → Tip)</td><td class="val">${taperPct}% (${tipArea} → ${handleArea} mm²)</td></tr>
+                </table>
+              </div>
+
+              <div class="table-card">
+                <div class="table-title">Frog Dimensions</div>
+                <table>
+                  <tr><td class="lbl">Frog Height 1 (Front)</td><td class="val">${b.frog_h1.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Frog Height 2 (Back)</td><td class="val">${b.frog_h2.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Frog Length (Top)</td><td class="val">${b.frog_len_top.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Frog Length (Bottom)</td><td class="val">${b.frog_len_bot.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Frog Width — Top Front</td><td class="val">${b.frog_w_tf.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Frog Width — Top Back</td><td class="val">${b.frog_w_tb.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Frog Width — Bottom Back</td><td class="val">${b.frog_w_bb.toFixed(1)} mm</td></tr>
+                  <tr><td class="lbl">Frog Width — Ferrule</td><td class="val">${b.frog_w_fer.toFixed(1)} mm</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openZoom(src) {
+      document.getElementById('lightboxImg').src = src;
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    renderCard();
+  </script>
+</body>
+</html>
