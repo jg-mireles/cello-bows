@@ -69,7 +69,8 @@
     .stat-val { font-size: 1.1rem; font-weight: 600; color: #fff; }
     .stat-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
     .gauge-container { margin-top: 0.5rem; }
-    .gauge-label { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.25rem; }
+    .gauge-label { display: flex; justify-content: space-between; align-items: baseline; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.35rem; }
+    .gauge-label strong { color: var(--text-main); font-weight: 600; }
     .gauge-bar-bg { background: var(--tag-bg); height: 6px; border-radius: 3px; overflow: hidden; }
     .gauge-bar-fill { background: linear-gradient(90deg, #58a6ff, #d4af37); height: 100%; border-radius: 3px; }
     .card-cta { margin-top: 0.9rem; font-size: 0.76rem; color: var(--gold); text-align: right; opacity: 0.85; }
@@ -199,7 +200,6 @@
 
       document.getElementById('bowGrid').innerHTML = filtered.map(b => {
         const weightPct = Math.max(0, Math.min(100, ((b.weight - minWeight) / (maxWeight - minWeight)) * 100));
-        const ratioPct = Math.round(b.bp_screw_ratio * 100) + '%';
         return `
           <a href="bow.html?id=${encodeURIComponent(b.id)}" class="card">
             <div>
@@ -223,8 +223,8 @@
             <div>
               <div class="gauge-container">
                 <div class="gauge-label">
-                  <span>Weight Spectrum (${minWeight}g – ${maxWeight}g)</span>
-                  <span><strong>${ratioPct}</strong> ratio</span>
+                  <span>Weight: <strong>${b.weight.toFixed(1)}g</strong></span>
+                  <span>Range: ${minWeight}g – ${maxWeight}g</span>
                 </div>
                 <div class="gauge-bar-bg"><div class="gauge-bar-fill" style="width: ${weightPct}%;"></div></div>
               </div>
