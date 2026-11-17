@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bow Specification Card | Cello Bow Collection</title>
+  <title>Bow Specification Card | NMM Cello Bow Collection</title>
   <script src="data.js"></script>
   <style>
     :root {
@@ -150,18 +150,36 @@
   </div>
 
   <script>
+    function normalizeSlug(str) {
+      return (str || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase();
+    }
+
     function renderCard() {
       const params = new URLSearchParams(window.location.search);
-      const id = params.get('id');
+      const rawId = (params.get('id') || '').trim();
+      const normId = normalizeSlug(rawId);
+
       const sorted = [...BOWS_DATA].sort((a, b) => a.maker.localeCompare(b.maker) || a.obj.localeCompare(b.obj));
-      let idx = sorted.findIndex(b => b.id === id || b.obj === id);
+
+      let idx = sorted.findIndex(b => {
+        if (!normId) return false;
+        const idNorm = normalizeSlug(b.id);
+        const objNorm = normalizeSlug(b.obj);
+        const comboNorm = normalizeSlug(`${b.maker}-${b.id}`);
+        const imgNorm = normalizeSlug(b.img);
+        return idNorm === normId || objNorm === normId || comboNorm === normId || imgNorm.includes(normId);
+      });
+
       if (idx === -1) idx = 0;
 
       const b = sorted[idx];
       const prev = sorted[(idx - 1 + sorted.length) % sorted.length];
       const next = sorted[(idx + 1) % sorted.length];
 
-      document.title = `${b.maker} (${b.obj}) | Cello Bow Collection`;
+      document.title = `${b.maker} (${b.obj}) | NMM Cello Bow Collection`;
 
       // Collection bounds for benchmark bars
       const pct = (val, min, max) => Math.max(4, Math.min(100, ((val - min) / (max - min)) * 100)).toFixed(1);
@@ -173,7 +191,7 @@
       const handleArea = (b.handle_tb * b.handle_ss).toFixed(1);
       const tipArea = (b.tip_tb * b.tip_ss).toFixed(1);
       const taperPct = (((b.handle_tb - b.tip_tb) / b.handle_tb) * 100).toFixed(1);
-      const fittingsShare = (((b.frog_screw_wt) / b.weight) * 100).toFixed(1);
+      const fittingsShare = ((b.frog_screw_wt / b.weight) * 100).toFixed(1);
 
       document.getElementById('app').innerHTML = `
         <div class="top-nav">
