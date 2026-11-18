@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Balance Point Simulator — NMM Cello Bow Collection</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --gold: #d4af37;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --red: #f85149;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 28px 20px 60px;
+    }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 18px;
+      margin-bottom: 26px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.55rem;
+      letter-spacing: 0.2px;
+    }
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .btn-back {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.9rem;
+      font-weight: 600;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .btn-back:hover {
+      border-color: var(--gold);
+      background: #1c222b;
+    }
+
+    /* Visual Bow Diagram Card */
+    .stage-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 24px;
+      margin-bottom: 24px;
+    }
+    .kpi-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .kpi {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .kpi-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--muted);
+    }
+    .kpi-value {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--gold);
+      margin-top: 2px;
+    }
+    .kpi-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .svg-wrap {
+      width: 100%;
+      background: #0b0f14;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 10px 6px;
+    }
+
+    /* Controls Grid */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 22px;
+    }
+    @media (max-width: 820px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+    }
+    .card h2 {
+      margin: 0 0 6px;
+      font-size: 1.12rem;
+    }
+    .card p.desc {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+    .slider-group {
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid #21262d;
+    }
+    .slider-group:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 6px;
+    }
+    .slider-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .slider-badge {
+      font-size: 0.75rem;
+      color: var(--blue);
+      margin-left: 6px;
+      font-weight: 500;
+    }
+    .slider-val {
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--gold);
+    }
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--gold);
+      cursor: pointer;
+    }
+    .range-limits {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.76rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    /* Presets & Notes */
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 0.92rem;
+      margin-bottom: 14px;
+    }
+    .preset-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+    .btn-preset {
+      padding: 7px 11px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      font-size: 0.82rem;
+      cursor: pointer;
+      transition: border-color 0.15s;
+    }
+    .btn-preset:hover {
+      border-color: var(--blue);
+    }
+    .note-box {
+      background: var(--bg);
+      border-left: 3px solid var(--blue);
+      padding: 12px 14px;
+      border-radius: 0 8px 8px 0;
+      font-size: 0.85rem;
+      color: var(--muted);
+    }
+    .note-box strong { color: var(--text); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Cello Bow Balance Point Simulator</h1>
+        <p class="subtitle">Empirical torque & regression model calibrated on the 29 NMM Cello Bows</p>
+      </div>
+      <a href="index.html" class="btn-back">← Back to Catalog</a>
+    </header>
+
+    <!-- Top Visual Bow & Live KPIs -->
+    <div class="stage-card">
+      <div class="kpi-row">
+        <div class="kpi">
+          <div class="kpi-label">Predicted BP (from Screw)</div>
+          <div class="kpi-value" id="kpi-bp">252.9 mm</div>
+          <div class="kpi-sub" id="kpi-feel">Classical 36.4% pivot</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Total Assembled Weight</div>
+          <div class="kpi-value" id="kpi-total" style="color: var(--text);">79.6 g</div>
+          <div class="kpi-sub" id="kpi-ratio">Stick share: 68.5%</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">Stick-to-Fittings Ratio</div>
+          <div class="kpi-value" id="kpi-sfr" style="color: var(--blue);">2.28×</div>
+          <div class="kpi-sub">Collection median: 2.26×</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">vs. Collection Median (252 mm)</div>
+          <div class="kpi-value" id="kpi-delta" style="color: var(--green);">+0.9 mm</div>
+          <div class="kpi-sub" id="kpi-actual">Preset actual: —</div>
+        </div>
+      </div>
+
+      <!-- Interactive SVG Bow Lever Diagram -->
+      <div class="svg-wrap">
+        <svg id="bow-svg" viewBox="0 0 900 135" width="100%" height="135">
+          <!-- 36%-37% Classical Sweet Spot Corridor -->
+          <rect id="sweet-zone" x="345" y="18" width="22" height="72" fill="#3fb950" opacity="0.18" rx="3" />
+          <text x="356" y="13" fill="#3fb950" font-size="10" text-anchor="middle" font-weight="600">36–37% Target</text>
+
+          <!-- Stick -->
+          <line id="svg-stick" x1="80" y1="54" x2="820" y2="54" stroke="#c98a4b" stroke-width="6" stroke-linecap="round" />
+          <!-- Head -->
+          <path id="svg-head" d="M 812 54 L 826 54 L 824 74 L 814 72 Z" fill="#c98a4b" />
+          <!-- Hair -->
+          <line id="svg-hair" x1="125" y1="73" x2="818" y2="73" stroke="#e6edf3" stroke-width="1.6" opacity="0.75" />
+          <!-- Frog -->
+          <rect id="svg-frog" x="108" y="56" width="54" height="19" rx="2" fill="#2d333b" stroke="#8b949e" stroke-width="1.2" />
+          <!-- Screw / Button -->
+          <rect id="svg-screw" x="64" y="49" width="16" height="10" rx="2" fill="#d4af37" />
+
+          <!-- Moving Balance Point Fulcrum Triangle -->
+          <g id="fulcrum-group" transform="translate(352, 58)">
+            <polygon points="0,0 -9,16 9,16" fill="#d4af37" />
+            <line x1="0" y1="-26" x2="0" y2="22" stroke="#d4af37" stroke-width="1.5" stroke-dasharray="3,2" />
+            <text id="svg-bp-label" x="0" y="32" fill="#d4af37" font-size="12" font-weight="700" text-anchor="middle">252.9 mm</text>
+          </g>
+
+          <!-- Dimension Guide Line -->
+          <line x1="64" y1="108" x2="352" y2="108" id="dim-line" stroke="#58a6ff" stroke-width="1.3" />
+          <line x1="64" y1="102" x2="64" y2="114" stroke="#58a6ff" stroke-width="1.3" />
+          <line x1="352" y1="102" x2="352" y2="114" id="dim-tick" stroke="#58a6ff" stroke-width="1.3" />
+          <text x="64" y="126" fill="#8b949e" font-size="10">Screw End (0 mm)</text>
+          <text id="svg-tip-label" x="826" y="126" fill="#8b949e" font-size="10" text-anchor="end">Tip (695 mm)</text>
+        </svg>
+      </div>
+    </div>
+
+    <!-- Sliders & Maker Presets -->
+    <div class="grid-2">
+      <div class="card">
+        <h2>4 Primary Physical Controls</h2>
+        <p class="desc">Adjust the four key mass and length levers to see how the fulcrum responds.</p>
+
+        <!-- Slider 1: Screw Weight -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div>
+              <span class="slider-title">1. Screw / Button Weight</span>
+              <span class="slider-badge">#1 Driver (r = -0.59)</span>
+            </div>
+            <span class="slider-val" id="val-screw">6.0 g</span>
+          </div>
+          <input type="range" id="in-screw" min="4.5" max="8.0" step="0.1" value="6.0" />
+          <div class="range-limits"><span>4.5 g (Hollow/Bone)</span><span>Collection: 4.8–7.5 g</span><span>8.0 g (Heavy Gold/Silver)</span></div>
+        </div>
+
+        <!-- Slider 2: Frog Weight -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div>
+              <span class="slider-title">2. Frog Weight</span>
+              <span class="slider-badge">Rear Assembly</span>
+            </div>
+            <span class="slider-val" id="val-frog">17.9 g</span>
+          </div>
+          <input type="range" id="in-frog" min="13.5" max="24.5" step="0.1" value="17.9" />
+          <div class="range-limits"><span>13.5 g (Light/Open)</span><span>Collection: 14.0–24.0 g</span><span>24.5 g (Heavy Mount)</span></div>
+        </div>
+
+        <!-- Slider 3: Bare Stick Weight -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div>
+              <span class="slider-title">3. Bare Stick Weight</span>
+              <span class="slider-badge">Wood Mass</span>
+            </div>
+            <span class="slider-val" id="val-stick">54.5 g</span>
+          </div>
+          <input type="range" id="in-stick" min="48.0" max="66.0" step="0.1" value="54.5" />
+          <div class="range-limits"><span>48.0 g (Slender)</span><span>Collection: 48.5–65.0 g</span><span>66.0 g (Dense/Thick)</span></div>
+        </div>
+
+        <!-- Slider 4: Stick Length -->
+        <div class="slider-group">
+          <div class="slider-header">
+            <div>
+              <span class="slider-title">4. Stick Length</span>
+              <span class="slider-badge">Lever Scale</span>
+            </div>
+            <span class="slider-val" id="val-len">695 mm</span>
+          </div>
+          <input type="range" id="in-len" min="688" max="708" step="1" value="695" />
+          <div class="range-limits"><span>688 mm (Short)</span><span>Collection: 690–705 mm</span><span>708 mm (Long Peccatte)</span></div>
+        </div>
+      </div>
+
+      <!-- Right Column: Presets & Lutherie Notes -->
+      <div class="card">
+        <h2>Test Against Real Bows</h2>
+        <p class="desc">Load any of the 29 bows from the collection to compare predicted vs. measured balance.</p>
+
+        <select id="bow-select">
+          <option value="median">— Collection Median Baseline —</option>
+        </select>
+
+        <div class="preset-btns">
+          <button class="btn-preset" onclick="loadPreset('TL-15760')">Victor Fétique (7.5g screw)</button>
+          <button class="btn-preset" onclick="loadPreset('15853')">John Dodd (4.8g screw)</button>
+          <button class="btn-preset" onclick="loadPreset('15737')">D. Peccatte (705 mm)</button>
+          <button class="btn-preset" onclick="loadPreset('15850')">Heinz Dölling (65g stick)</button>
+          <button class="btn-preset" onclick="loadPreset('TL-15752')">Eugène Sartory (80.0g)</button>
+        </div>
+
+        <div class="note-box">
+          <strong>Why the Screw Moves the Needle Most:</strong><br/>
+          Because the button sits ~253 mm behind the balance point, every <strong>+1.0 g</strong> added to the screw pulls the balance point roughly <strong>3.8 mm closer to the hand</strong>. By contrast, bare stick weight is distributed across both sides of the fulcrum, so changing stick weight alone barely shifts the balance point unless fittings change with it.
+          <br/><br/>
+          <em>Note:</em> Typical prediction uncertainty is <strong>±4.4 mm</strong> due to natural Pernambuco density variations along individual sticks.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BOWS = [
+      { id: "15849", maker: "C. N. Bazin", len: 697, stick: 55.5, frog: 16.3, screw: 5.5, bp: 250 },
+      { id: "15736", maker: "C. N. Bazin", len: 700, stick: 55.8, frog: 19.9, screw: 7.0, bp: 251 },
+      { id: "15852", maker: "John Clutterbuck", len: 694, stick: 53.6, frog: 21.2, screw: 6.4, bp: 250 },
+      { id: "15853", maker: "John Dodd", len: 691, stick: 55.5, frog: 14.0, screw: 4.8, bp: 260 },
+      { id: "15850", maker: "Heinz Dölling", len: 695, stick: 65.0, frog: 18.0, screw: 5.0, bp: 256 },
+      { id: "TL-16013", maker: "Victor Fétique", len: 697, stick: 54.2, frog: 17.2, screw: 6.0, bp: 249 },
+      { id: "TL-15760", maker: "Victor Fétique", len: 692, stick: 50.0, frog: 17.0, screw: 7.5, bp: 241 },
+      { id: "15862", maker: "J. S. Finkel", len: 697, stick: 55.0, frog: 19.8, screw: 5.9, bp: 251 },
+      { id: "15735", maker: "M. A. Husson", len: 690, stick: 55.7, frog: 19.2, screw: 6.3, bp: 255 },
+      { id: "TL-16014", maker: "J. A. Lamy", len: 690, stick: 52.0, frog: 14.0, screw: 5.0, bp: 254 },
+      { id: "15863", maker: "J. A. Lamy", len: 691, stick: 53.9, frog: 15.9, screw: 6.3, bp: 258 },
+      { id: "15799", maker: "J. A. Lamy", len: 691, stick: 51.6, frog: 17.5, screw: 6.5, bp: 250 },
+      { id: "TL-15769", maker: "John Norwood Lee", len: 698, stick: 56.0, frog: 17.2, screw: 6.0, bp: 251 },
+      { id: "15861", maker: "A. N. Louis", len: 692, stick: 53.6, frog: 21.2, screw: 6.4, bp: 250 },
+      { id: "15848", maker: "C. A. Nürnberger", len: 697, stick: 53.0, frog: 17.9, screw: 5.2, bp: 262 },
+      { id: "TL-15751", maker: "Emile A. Ouchard", len: 694, stick: 55.2, frog: 14.1, screw: 5.2, bp: 253 },
+      { id: "15737", maker: "Dominique Peccatte", len: 705, stick: 56.7, frog: 19.0, screw: 5.0, bp: 256 },
+      { id: "TL-15750", maker: "Dominique Peccatte", len: 691, stick: 56.0, frog: 15.4, screw: 5.2, bp: 252 },
+      { id: "15800", maker: "Charles Peccatte", len: 693, stick: 55.0, frog: 18.0, screw: 7.2, bp: 250 },
+      { id: "15847", maker: "Kurt G. Penzel", len: 697, stick: 52.9, frog: 18.0, screw: 5.6, bp: 257 },
+      { id: "TL-16015", maker: "Karl G. Penzel", len: 698, stick: 53.0, frog: 20.0, screw: 5.9, bp: 247 },
+      { id: "15857", maker: "H. R. Pfretzschner Sr.", len: 700, stick: 48.5, frog: 17.0, screw: 5.1, bp: 264 },
+      { id: "TL-15770", maker: "William Salchow", len: 694, stick: 58.0, frog: 18.5, screw: 6.4, bp: 260 },
+      { id: "15856", maker: "William Salchow", len: 693, stick: 55.7, frog: 18.4, screw: 6.8, bp: 241 },
+      { id: "TL-15752", maker: "Eugène Sartory", len: 695, stick: 54.5, frog: 18.7, screw: 6.4, bp: 258 },
+      { id: "15854", maker: "Lothar Seifert", len: 699, stick: 52.8, frog: 24.0, screw: 6.7, bp: 244 },
+      { id: "15851", maker: "James Tubbs", len: 692, stick: 51.5, frog: 17.3, screw: 7.0, bp: 250 },
+      { id: "TL-15753", maker: "F. N. Voirin", len: 701, stick: 54.5, frog: 17.4, screw: 6.0, bp: 259 },
+      { id: "15855", maker: "Roger Zabinski", len: 697, stick: 54.4, frog: 16.5, screw: 5.8, bp: 259 }
+    ];
+
+    const sel = document.getElementById("bow-select");
+    BOWS.forEach(b => {
+      const opt = document.createElement("option");
+      opt.value = b.id;
+      opt.textContent = `${b.maker} (${b.id}) — Actual BP: ${b.bp} mm`;
+      sel.appendChild(opt);
+    });
+
+    const inScrew = document.getElementById("in-screw");
+    const inFrog = document.getElementById("in-frog");
+    const inStick = document.getElementById("in-stick");
+    const inLen = document.getElementById("in-len");
+    let currentActual = null;
+
+    function updateSim() {
+      const screw = parseFloat(inScrew.value);
+      const frog = parseFloat(inFrog.value);
+      const stick = parseFloat(inStick.value);
+      const len = parseFloat(inLen.value);
+
+      document.getElementById("val-screw").textContent = screw.toFixed(1) + " g";
+      document.getElementById("val-frog").textContent = frog.toFixed(1) + " g";
+      document.getElementById("val-stick").textContent = stick.toFixed(1) + " g";
+      document.getElementById("val-len").textContent = len.toFixed(0) + " mm";
+
+      // Empirical regression fitted to N=29 NMM Cello Bows (BP SCREW in mm)
+      const bp = 149.2 - 3.82 * (screw - 6.0) - 0.48 * (frog - 17.9) + 0.04 * (stick - 54.5) + 0.149 * len;
+      const totalLen = len + 16; // Stick + ~16 mm button
+      const ratioPct = (bp / totalLen) * 100;
+      const totalWt = stick + frog + screw + 1.2; // +1.2 g hair/winding/grip
+      const sfr = stick / (frog + screw);
+      const delta = bp - 252.0;
+
+      document.getElementById("kpi-bp").textContent = bp.toFixed(1) + " mm";
+      let feel = "Balanced 36% pivot";
+      if (ratioPct < 35.6) feel = `${ratioPct.toFixed(1)}% (Tip-light / Agile)`;
+      else if (ratioPct > 36.8) feel = `${ratioPct.toFixed(1)}% (Tip-weighted / Power)`;
+      else feel = `${ratioPct.toFixed(1)}% (Classical Sweet Spot)`;
+      document.getElementById("kpi-feel").textContent = feel;
+
+      document.getElementById("kpi-total").textContent = totalWt.toFixed(1) + " g";
+      document.getElementById("kpi-ratio").textContent = `Stick share: ${((stick / totalWt) * 100).toFixed(1)}%`;
+      document.getElementById("kpi-sfr").textContent = sfr.toFixed(2) + "×";
+
+      const deltaEl = document.getElementById("kpi-delta");
+      deltaEl.textContent = (delta >= 0 ? "+" : "") + delta.toFixed(1) + " mm";
+      deltaEl.style.color = Math.abs(delta) <= 4 ? "var(--green)" : "var(--gold)";
+
+      document.getElementById("kpi-actual").textContent = currentActual
+        ? `Measured: ${currentActual} mm (err ${(bp - currentActual >= 0 ? "+" : "") + (bp - currentActual).toFixed(1)} mm)`
+        : "Preset actual: —";
+
+      // Update SVG Bow Graphic
+      const startX = 64;
+      const endX = 64 + (totalLen / 725) * 770;
+      const bpX = startX + (bp / totalLen) * (endX - startX);
+      const sweetStart = startX + 0.358 * (endX - startX);
+      const sweetWidth = 0.014 * (endX - startX);
+
+      document.getElementById("svg-stick").setAttribute("x2", endX - 6);
+      document.getElementById("svg-hair").setAttribute("x2", endX - 8);
+      document.getElementById("svg-head").setAttribute("transform", `translate(${endX - 826}, 0)`);
+      document.getElementById("svg-tip-label").setAttribute("x", endX);
+      document.getElementById("svg-tip-label").textContent = `Tip (${len} mm)`;
+
+      document.getElementById("sweet-zone").setAttribute("x", sweetStart);
+      document.getElementById("sweet-zone").setAttribute("width", sweetWidth);
+
+      document.getElementById("fulcrum-group").setAttribute("transform", `translate(${bpX.toFixed(1)}, 58)`);
+      document.getElementById("svg-bp-label").textContent = bp.toFixed(1) + " mm";
+      document.getElementById("dim-line").setAttribute("x2", bpX.toFixed(1));
+      document.getElementById("dim-tick").setAttribute("x1", bpX.toFixed(1));
+      document.getElementById("dim-tick").setAttribute("x2", bpX.toFixed(1));
+    }
+
+    function loadPreset(id) {
+      if (id === "median") {
+        inScrew.value = 6.0;
+        inFrog.value = 17.9;
+        inStick.value = 54.5;
+        inLen.value = 695;
+        currentActual = null;
+        sel.value = "median";
+      } else {
+        const b = BOWS.find(x => x.id === id);
+        if (!b) return;
+        inScrew.value = b.screw;
+        inFrog.value = b.frog;
+        inStick.value = b.stick;
+        inLen.value = b.len;
+        currentActual = b.bp;
+        sel.value = b.id;
+      }
+      updateSim();
+    }
+
+    [inScrew, inFrog, inStick, inLen].forEach(el => {
+      el.addEventListener("input", () => {
+        currentActual = null;
+        sel.value = "median";
+        updateSim();
+      });
+    });
+
+    sel.addEventListener("change", () => loadPreset(sel.value));
+    updateSim();
+  </script>
+</body>
+</html>
