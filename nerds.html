@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Stats for Nerds — NMM Cello Bow Collection</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --panel: #161b22;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --gold: #d4af37;
+      --blue: #58a6ff;
+      --green: #3fb950;
+      --red: #f85149;
+      --purple: #bc8cff;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+      padding: 2rem 1rem 4rem;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 18px;
+      margin-bottom: 28px;
+    }
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 1.85rem;
+      color: var(--gold);
+    }
+    .subtitle { margin: 4px 0 0; color: var(--muted); font-size: 0.92rem; }
+    .nav-links { display: flex; flex-wrap: wrap; gap: 10px; }
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--panel);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 0.88rem;
+      font-weight: 600;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .nav-btn:hover { border-color: var(--gold); background: #1c222b; }
+    .nav-btn.active { border-color: var(--blue); color: var(--blue); }
+
+    .section-title {
+      font-family: Georgia, "Times New Roman", serif;
+      color: var(--gold);
+      font-size: 1.3rem;
+      margin: 2.5rem 0 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .section-title::after { content: ""; flex: 1; height: 1px; background: var(--border); }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(460px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    @media (max-width: 540px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.35rem;
+      margin-bottom: 1.5rem;
+    }
+    .card h3 { margin: 0 0 4px; font-size: 1.05rem; color: var(--text); }
+    .card p.sub { margin: 0 0 14px; font-size: 0.83rem; color: var(--muted); }
+    .canvas-box { position: relative; height: 300px; width: 100%; }
+    .canvas-box.tall { height: 430px; }
+
+    /* Tables */
+    .table-wrap { overflow-x: auto; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.86rem;
+    }
+    th, td {
+      padding: 9px 11px;
+      border-bottom: 1px solid #21262d;
+      text-align: right;
+      white-space: nowrap;
+    }
+    th:first-child, td:first-child, th:nth-child(2), td:nth-child(2) { text-align: left; }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.74rem;
+      letter-spacing: 0.5px;
+      background: #0f141a;
+    }
+    tr:hover td { background: rgba(88, 166, 255, 0.05); }
+    .sig { color: var(--green); font-weight: 700; }
+    .neg { color: var(--red); font-weight: 600; }
+    .pos { color: var(--blue); font-weight: 600; }
+    .muted { color: var(--muted); }
+
+    .formula-box {
+      background: #0b0f14;
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--gold);
+      padding: 14px 16px;
+      border-radius: 0 8px 8px 0;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      margin: 12px 0;
+      color: var(--text);
+    }
+    .pill-row { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 16px; }
+    .pill {
+      background: #0f141a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      flex: 1 1 200px;
+    }
+    .pill-lbl { font-size: 0.74rem; text-transform: uppercase; color: var(--muted); }
+    .pill-val { font-size: 1.2rem; font-weight: 700; color: var(--gold); margin-top: 2px; }
+    .pill-note { font-size: 0.78rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>Stats for Nerds</h1>
+        <p class="subtitle">Multivariate Correlations, OLS Regression & 22-Variable Principal Component Analysis (N = 29)</p>
+      </div>
+      <nav class="nav-links">
+        <a href="index.html" class="nav-btn">← Catalog</a>
+        <a href="simulator.html" class="nav-btn">⚖️ Balance Simulator</a>
+        <a href="nerds.html" class="nav-btn active">📊 Stats for Nerds</a>
+      </nav>
+    </header>
+
+    <!-- SECTION 1: SUMMARY BENCHMARKS -->
+    <div class="section-title">1. Core Parametric & Non-Parametric Benchmarks</div>
+    <div class="card">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Measurement Metric</th>
+              <th>Unit</th>
+              <th>Mean</th>
+              <th>Std Dev</th>
+              <th>Min</th>
+              <th>Q1 (25%)</th>
+              <th>Median</th>
+              <th>Q3 (75%)</th>
+              <th>Max</th>
+              <th>IQR</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td><strong>Total Finished Weight</strong></td><td>g</td><td>79.76</td><td>3.62</td><td>71.40</td><td>78.10</td><td><strong>79.60</strong></td><td>81.80</td><td>88.50</td><td>3.70</td></tr>
+            <tr><td><strong>Stick Length</strong></td><td>mm</td><td>695.21</td><td>3.75</td><td>690.00</td><td>692.00</td><td><strong>695.00</strong></td><td>697.00</td><td>705.00</td><td>5.00</td></tr>
+            <tr><td><strong>Bare Stick Weight</strong></td><td>g</td><td>54.45</td><td>2.87</td><td>48.50</td><td>53.00</td><td><strong>54.50</strong></td><td>55.70</td><td>65.00</td><td>2.70</td></tr>
+            <tr><td><strong>Frog Weight</strong></td><td>g</td><td>17.88</td><td>2.22</td><td>14.00</td><td>17.00</td><td><strong>17.90</strong></td><td>19.00</td><td>24.00</td><td>2.00</td></tr>
+            <tr><td><strong>Screw / Button Weight</strong></td><td>g</td><td>6.00</td><td>0.74</td><td>4.80</td><td>5.20</td><td><strong>6.00</strong></td><td>6.40</td><td>7.50</td><td>1.20</td></tr>
+            <tr><td><strong>Frog + Screw Combined</strong></td><td>g</td><td>24.32</td><td>2.35</td><td>20.00</td><td>22.40</td><td><strong>24.20</strong></td><td>25.70</td><td>30.40</td><td>3.30</td></tr>
+            <tr><td><strong>Balance Point (from Stick)</strong></td><td>mm</td><td>236.21</td><td>6.39</td><td>223.00</td><td>232.00</td><td><strong>235.00</strong></td><td>241.00</td><td>249.00</td><td>9.00</td></tr>
+            <tr><td><strong>Balance Point (from Screw)</strong></td><td>mm</td><td>253.03</td><td>5.82</td><td>241.00</td><td>250.00</td><td><strong>252.00</strong></td><td>258.00</td><td>264.00</td><td>8.00</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 2: BALANCE POINT CORRELATIONS -->
+    <div class="section-title">2. Balance Point Mechanics & Bivariate Correlations (Target: BP SCREW)</div>
+
+    <div class="pill-row">
+      <div class="pill">
+        <div class="pill-lbl">#1 Driver: Screw Weight</div>
+        <div class="pill-val" style="color: var(--red);">r = -0.591</div>
+        <div class="pill-note">p = 0.0007 | R² = 34.9% | -3.82 mm/g</div>
+      </div>
+      <div class="pill">
+        <div class="pill-lbl">Stick-to-Fittings Ratio</div>
+        <div class="pill-val" style="color: var(--blue);">r = +0.417</div>
+        <div class="pill-note">p = 0.0245 | Spearman ρ = +0.512</div>
+      </div>
+      <div class="pill">
+        <div class="pill-lbl">Bare Stick Weight vs. BP</div>
+        <div class="pill-val" style="color: var(--muted);">r = +0.119</div>
+        <div class="pill-note">p = 0.5394 (No significant effect)</div>
+      </div>
+      <div class="pill">
+        <div class="pill-lbl">Stick vs. Fittings Mass</div>
+        <div class="pill-val" style="color: var(--muted);">r = -0.184</div>
+        <div class="pill-note">p = 0.340 (Statistically independent)</div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Screw / Button Weight vs. Balance Point</h3>
+        <p class="sub">Inverse torque leverage (τ = m × d): heavier buttons pull the fulcrum toward the hand (r = -0.591)</p>
+        <div class="canvas-box"><canvas id="chartScrewBP"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Stick-to-(Frog + Screw) Ratio vs. Balance Point</h3>
+        <p class="sub">Higher wood-to-hardware mass share shifts the balance point outward toward the tip (r = +0.417)</p>
+        <div class="canvas-box"><canvas id="chartRatioBP"></canvas></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Bare Stick Weight vs. All Non-Stick Mass</h3>
+        <p class="sub">Makers did not pair heavy sticks with light fittings to hit a target weight (r = -0.184, p = 0.340)</p>
+        <div class="canvas-box"><canvas id="chartStickVsFittings"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Ranked Correlation Spectrum with BP SCREW</h3>
+        <p class="sub">Pearson r across physical parameters (Negative = pulls BP to hand; Positive = pushes BP to tip)</p>
+        <div class="canvas-box"><canvas id="chartCorrBars"></canvas></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>Full Ranked Correlation & Standardized Multiple Regression Table</h3>
+      <p class="sub">Multivariate OLS model (R² = 0.423, F = 3.38, p = 0.0197) predicting BP SCREW (mm)</p>
+      <div class="formula-box">
+        ẑ(BP SCREW) = -0.445·z(Screw Wt) - 0.243·z(Ferrule Width) - 0.125·z(Frog Wt) + 0.109·z(Stick Length) + 0.006·z(Stick Wt)
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Physical Variable</th>
+              <th>Pearson r</th>
+              <th>p-value</th>
+              <th>Spearman ρ</th>
+              <th>R² (%)</th>
+              <th>OLS Std. β</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>1</td><td><strong>Screw Weight (g)</strong></td><td class="neg">-0.591</td><td class="sig">0.0007</td><td>-0.571</td><td>34.9%</td><td class="neg">-0.445 (p=0.041)</td></tr>
+            <tr><td>2</td><td><strong>Frog + Screw Combined (g)</strong></td><td class="neg">-0.452</td><td class="sig">0.0137</td><td>-0.505</td><td>20.5%</td><td class="muted">—</td></tr>
+            <tr><td>3</td><td><strong>All Non-Stick Mass (g)</strong></td><td class="neg">-0.445</td><td class="sig">0.0154</td><td>-0.444</td><td>19.8%</td><td class="muted">—</td></tr>
+            <tr><td>4</td><td><strong>Stick-to-(Frog+Screw) Ratio</strong></td><td class="pos">+0.417</td><td class="sig">0.0245</td><td>+0.512</td><td>17.4%</td><td class="muted">—</td></tr>
+            <tr><td>5</td><td><strong>Frog Width at Ferrule (mm)</strong></td><td class="neg">-0.376</td><td class="sig">0.0445</td><td>-0.418</td><td>14.1%</td><td>-0.243 (p=0.145)</td></tr>
+            <tr><td>6</td><td>Frog Weight alone (g)</td><td>-0.342</td><td class="muted">0.0695</td><td>-0.301</td><td>11.7%</td><td>-0.125 (p=0.551)</td></tr>
+            <tr><td>7</td><td>Stick Width near Tip S-S (mm)</td><td>+0.317</td><td class="muted">0.0935</td><td>+0.319</td><td>10.1%</td><td class="muted">—</td></tr>
+            <tr><td>8</td><td>Total Finished Weight (g)</td><td>-0.249</td><td class="muted">0.1934</td><td>-0.225</td><td>6.2%</td><td class="muted">—</td></tr>
+            <tr><td>9</td><td>Frog Length at Bottom (mm)</td><td>+0.249</td><td class="muted">0.1934</td><td>+0.254</td><td>6.2%</td><td class="muted">—</td></tr>
+            <tr><td>10</td><td>Stick Length (mm)</td><td>+0.170</td><td class="muted">0.3792</td><td>+0.105</td><td>2.9%</td><td>+0.109 (p=0.561)</td></tr>
+            <tr><td>11</td><td><strong>Bare Stick Weight alone (g)</strong></td><td>+0.119</td><td class="muted">0.5394</td><td>+0.183</td><td>1.4%</td><td>+0.006 (p=0.969)</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- SECTION 3: PRINCIPAL COMPONENT ANALYSIS -->
+    <div class="section-title">3. Principal Component Analysis (22 Standardized Dimensions)</div>
+
+    <div class="card">
+      <h3>2D PCA Biplot: PC1 (Handle & Upper-Frog Bulk) vs. PC2 (Balance Leverage)</h3>
+      <p class="sub">Interactive projection of all 29 bows color-coded by school, with top eigenvector loading vectors overlaid from the origin</p>
+      <div class="canvas-box tall"><canvas id="chartPCA"></canvas></div>
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h3>Eigenvalue Spectrum (Kaiser Criterion λ > 1.0)</h3>
+        <p class="sub">PC1 through PC7 exceed λ = 1.0 and capture 82.4% of total variance across 22 standardized features</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Primary Physical Interpretation</th>
+                <th>Eigenvalue (λ)</th>
+                <th>Variance (%)</th>
+                <th>Cumulative (%)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>PC1</strong></td><td>Handle & Upper-Frog Bulk</td><td><strong>4.678</strong></td><td>20.53%</td><td>20.53%</td></tr>
+              <tr><td><strong>PC2</strong></td><td>Balance Leverage vs. Screw/Mid-Stick</td><td><strong>3.941</strong></td><td>17.30%</td><td>37.82%</td></tr>
+              <tr><td><strong>PC3</strong></td><td>Frog Throat Height & Stick Mass</td><td><strong>2.713</strong></td><td>11.91%</td><td>49.73%</td></tr>
+              <tr><td><strong>PC4</strong></td><td>Head Proportions & Length Scaling</td><td><strong>2.315</strong></td><td>10.16%</td><td>59.89%</td></tr>
+              <tr><td><strong>PC5</strong></td><td>Tip Taper Aspect Ratio</td><td><strong>1.945</strong></td><td>8.54%</td><td>68.43%</td></tr>
+              <tr><td><strong>PC6</strong></td><td>Frog Length vs. Height Aspect</td><td><strong>1.784</strong></td><td>7.83%</td><td>76.26%</td></tr>
+              <tr><td><strong>PC7</strong></td><td>Secondary Longitudinal Taper</td><td><strong>1.397</strong></td><td>6.13%</td><td>82.39%</td></tr>
+              <tr><td class="muted">PC8</td><td class="muted">Sub-threshold Noise (λ < 1.0)</td><td class="muted">0.845</td><td class="muted">3.71%</td><td class="muted">86.10%</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Dominant Eigenvector Loadings (PC1 – PC3)</h3>
+        <p class="sub">Standardized weights defining the orthogonal axes of the 22-dimensional correlation matrix R</p>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Original Measurement</th>
+                <th>PC1</th>
+                <th>PC2</th>
+                <th>PC3</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>Frog width (top, back) (mm)</td><td class="pos">+0.424</td><td>+0.046</td><td>+0.108</td></tr>
+              <tr><td>Stick width at handle (S-S) (mm)</td><td class="pos">+0.406</td><td>+0.012</td><td>+0.002</td></tr>
+              <tr><td>Stick width at handle (T-B) (mm)</td><td class="pos">+0.403</td><td>+0.085</td><td>+0.045</td></tr>
+              <tr><td>Frog width (top, front) (mm)</td><td class="pos">+0.390</td><td>-0.051</td><td>+0.002</td></tr>
+              <tr><td>Stick width near tip (T-B) (mm)</td><td class="pos">+0.306</td><td>-0.118</td><td>-0.184</td></tr>
+              <tr><td>BP STICK (mm)</td><td>+0.113</td><td class="pos">+0.391</td><td>-0.277</td></tr>
+              <tr><td>BP SCREW (mm)</td><td>+0.102</td><td class="pos">+0.384</td><td>-0.282</td></tr>
+              <tr><td>Screw Weight (g)</td><td>-0.130</td><td class="neg">-0.310</td><td>+0.188</td></tr>
+              <tr><td>Stick width near middle (T-B) (mm)</td><td>+0.147</td><td class="neg">-0.301</td><td>-0.199</td></tr>
+              <tr><td>Frog width at ferrule (mm)</td><td>+0.063</td><td class="neg">-0.298</td><td>+0.180</td></tr>
+              <tr><td>Frog Height 1 / Height 2 (mm)</td><td>+0.087</td><td>+0.152</td><td class="pos">+0.458</td></tr>
+              <tr><td>Only Stick Weight (g)</td><td>+0.117</td><td>+0.141</td><td>+0.234</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const BOWS = [
+      { id: "15851", maker: "Tubbs", school: "English", wt: 77.5, stick: 51.5, frog: 17.3, screw: 7.0, bp: 250, pc1: -2.97, pc2: 0.70 },
+      { id: "TL-16013", maker: "Fétique", school: "French", wt: 80.0, stick: 54.2, frog: 17.2, screw: 6.0, bp: 249, pc1: -2.05, pc2: -1.85 },
+      { id: "15856", maker: "Salchow", school: "American", wt: 81.8, stick: 55.7, frog: 18.4, screw: 6.8, bp: 241, pc1: -2.05, pc2: -0.82 },
+      { id: "TL-16014", maker: "Lamy", school: "French", wt: 75.7, stick: 52.0, frog: 14.0, screw: 5.0, bp: 254, pc1: -1.97, pc2: 1.35 },
+      { id: "TL-15760", maker: "Fétique", school: "French", wt: 79.2, stick: 50.0, frog: 17.0, screw: 7.5, bp: 241, pc1: -1.91, pc2: -3.40 },
+      { id: "15857", maker: "Pfretzschner Sr.", school: "German", wt: 71.4, stick: 48.5, frog: 17.0, screw: 5.1, bp: 264, pc1: -1.86, pc2: 1.75 },
+      { id: "15849", maker: "Bazin", school: "French", wt: 75.8, stick: 55.5, frog: 16.3, screw: 5.5, bp: 250, pc1: -1.71, pc2: -0.16 },
+      { id: "15800", maker: "C. Peccatte", school: "French", wt: 80.3, stick: 55.0, frog: 18.0, screw: 7.2, bp: 250, pc1: -1.51, pc2: -1.47 },
+      { id: "15799", maker: "Lamy", school: "French", wt: 77.5, stick: 51.6, frog: 17.5, screw: 6.5, bp: 250, pc1: -1.29, pc2: -1.74 },
+      { id: "TL-15753", maker: "Voirin", school: "French", wt: 79.0, stick: 54.5, frog: 17.4, screw: 6.0, bp: 259, pc1: -0.85, pc2: 3.70 },
+      { id: "TL-15752", maker: "Sartory", school: "French", wt: 80.0, stick: 54.5, frog: 18.7, screw: 6.4, bp: 258, pc1: -0.78, pc2: 0.41 },
+      { id: "15863", maker: "Lamy", school: "French", wt: 78.5, stick: 53.9, frog: 15.9, screw: 6.3, bp: 258, pc1: -0.78, pc2: 1.03 },
+      { id: "TL-15751", maker: "Ouchard", school: "French", wt: 79.6, stick: 55.2, frog: 14.1, screw: 5.2, bp: 253, pc1: -0.70, pc2: -0.49 },
+      { id: "TL-16015", maker: "K. G. Penzel", school: "German", wt: 81.0, stick: 53.0, frog: 20.0, screw: 5.9, bp: 247, pc1: -0.67, pc2: -2.17 },
+      { id: "15850", maker: "Dölling", school: "German", wt: 88.5, stick: 65.0, frog: 18.0, screw: 5.0, bp: 256, pc1: -0.34, pc2: 1.60 },
+      { id: "15852", maker: "Clutterbuck", school: "English", wt: 83.2, stick: 53.6, frog: 21.2, screw: 6.4, bp: 250, pc1: -0.29, pc2: -0.81 },
+      { id: "15736", maker: "Bazin", school: "French", wt: 80.9, stick: 55.8, frog: 19.9, screw: 7.0, bp: 251, pc1: -0.10, pc2: -0.35 },
+      { id: "15848", maker: "Nürnberger", school: "German", wt: 78.1, stick: 53.0, frog: 17.9, screw: 5.2, bp: 262, pc1: 0.00, pc2: 2.29 },
+      { id: "15735", maker: "Husson", school: "French", wt: 82.5, stick: 55.7, frog: 19.2, screw: 6.3, bp: 255, pc1: 0.07, pc2: -0.73 },
+      { id: "15847", maker: "Kurt Penzel", school: "German", wt: 79.5, stick: 52.9, frog: 18.0, screw: 5.6, bp: 257, pc1: 0.34, pc2: -0.19 },
+      { id: "15854", maker: "Seifert", school: "German", wt: 84.8, stick: 52.8, frog: 24.0, screw: 6.7, bp: 244, pc1: 0.60, pc2: -3.48 },
+      { id: "15737", maker: "D. Peccatte", school: "French", wt: 82.1, stick: 56.7, frog: 19.0, screw: 5.0, bp: 256, pc1: 0.64, pc2: 3.96 },
+      { id: "TL-15770", maker: "Salchow", school: "American", wt: 85.0, stick: 58.0, frog: 18.5, screw: 6.4, bp: 260, pc1: 0.68, pc2: 1.21 },
+      { id: "TL-15750", maker: "D. Peccatte", school: "French", wt: 78.9, stick: 56.0, frog: 15.4, screw: 5.2, bp: 252, pc1: 0.73, pc2: 1.36 },
+      { id: "15855", maker: "Zabinski", school: "American", wt: 78.8, stick: 54.4, frog: 16.5, screw: 5.8, bp: 259, pc1: 1.06, pc2: 1.31 },
+      { id: "15862", maker: "Finkel", school: "Swiss", wt: 81.5, stick: 55.0, frog: 19.8, screw: 5.9, bp: 251, pc1: 2.07, pc2: -0.32 },
+      { id: "TL-15769", maker: "Lee", school: "American", wt: 83.9, stick: 56.0, frog: 17.2, screw: 6.0, bp: 251, pc1: 3.93, pc2: -0.53 },
+      { id: "15861", maker: "Louis", school: "English", wt: 74.1, stick: 53.6, frog: 21.2, screw: 6.4, bp: 250, pc1: 4.89, pc2: -4.22 },
+      { id: "15853", maker: "Dodd", school: "English", wt: 74.0, stick: 55.5, frog: 14.0, screw: 4.8, bp: 260, pc1: 6.80, pc2: 2.04 }
+    ];
+
+    Chart.defaults.color = '#8b949e';
+    Chart.defaults.font.family = '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+
+    // 1. Screw Weight vs BP Screw
+    new Chart(document.getElementById('chartScrewBP'), {
+      type: 'scatter',
+      data: {
+        datasets: [
+          {
+            label: 'Bows (N = 29)',
+            data: BOWS.map(b => ({ x: b.screw, y: b.bp, bow: b })),
+            backgroundColor: '#58a6ff',
+            borderColor: '#ffffff',
+            pointRadius: 5.5,
+            pointHoverRadius: 8
+          },
+          {
+            type: 'line',
+            label: 'OLS Trend (-4.64 mm/g)',
+            data: [{ x: 4.8, y: 258.6 }, { x: 7.5, y: 246.1 }],
+            borderColor: '#f85149',
+            borderWidth: 2,
+            borderDash: [5, 4],
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: c => c.raw.bow ? `${c.raw.bow.maker} (${c.raw.bow.id}): Screw ${c.raw.x}g, BP ${c.raw.y}mm` : c.dataset.label
+            }
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Screw Weight (g)' }, min: 4.6, max: 7.7, grid: { color: '#21262d' } },
+          y: { title: { display: true, text: 'BP SCREW (mm)' }, min: 238, max: 266, grid: { color: '#21262d' } }
+        }
+      }
+    });
+
+    // 2. Stick-to-(Frog+Screw) Ratio vs BP Screw
+    new Chart(document.getElementById('chartRatioBP'), {
+      type: 'scatter',
+      data: {
+        datasets: [
+          {
+            label: 'Bows (N = 29)',
+            data: BOWS.map(b => ({ x: +(b.stick / (b.frog + b.screw)).toFixed(3), y: b.bp, bow: b })),
+            backgroundColor: '#d4af37',
+            borderColor: '#ffffff',
+            pointRadius: 5.5,
+            pointHoverRadius: 8
+          },
+          {
+            type: 'line',
+            label: 'OLS Trend (r = +0.417)',
+            data: [{ x: 1.72, y: 248.1 }, { x: 2.95, y: 258.9 }],
+            borderColor: '#3fb950',
+            borderWidth: 2,
+            borderDash: [5, 4],
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: c => c.raw.bow ? `${c.raw.bow.maker} (${c.raw.bow.id}): Ratio ${c.raw.x}×, BP ${c.raw.y}mm` : c.dataset.label
+            }
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Stick-to-(Frog + Screw) Mass Ratio' }, min: 1.65, max: 3.05, grid: { color: '#21262d' } },
+          y: { title: { display: true, text: 'BP SCREW (mm)' }, min: 238, max: 266, grid: { color: '#21262d' } }
+        }
+      }
+    });
+
+    // 3. Bare Stick Weight vs Non-Stick Mass
+    new Chart(document.getElementById('chartStickVsFittings'), {
+      type: 'scatter',
+      data: {
+        datasets: [
+          {
+            label: 'Bows (N = 29)',
+            data: BOWS.map(b => ({ x: b.stick, y: +(b.wt - b.stick).toFixed(1), bow: b })),
+            backgroundColor: '#bc8cff',
+            borderColor: '#ffffff',
+            pointRadius: 5.5,
+            pointHoverRadius: 8
+          },
+          {
+            type: 'line',
+            label: 'Flat Slope (r = -0.184, p = 0.34)',
+            data: [{ x: 48.5, y: 26.4 }, { x: 65.0, y: 23.4 }],
+            borderColor: '#8b949e',
+            borderWidth: 1.8,
+            borderDash: [4, 4],
+            pointRadius: 0
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: c => c.raw.bow ? `${c.raw.bow.maker} (${c.raw.bow.id}): Stick ${c.raw.x}g, Fittings ${c.raw.y}g` : c.dataset.label
+            }
+          }
+        },
+        scales: {
+          x: { title: { display: true, text: 'Bare Stick Weight (g)' }, min: 47, max: 66.5, grid: { color: '#21262d' } },
+          y: { title: { display: true, text: 'All Non-Stick Mass (g)' }, min: 18, max: 34, grid: { color: '#21262d' } }
+        }
+      }
+    });
+
+    // 4. Horizontal Correlation Bars
+    const corrLabels = [
+      'Screw Weight (g)',
+      'Frog + Screw Combined (g)',
+      'All Non-Stick Mass (g)',
+      'Ferrule Width (mm)',
+      'Frog Weight alone (g)',
+      'Total Bow Weight (g)',
+      'Bare Stick Weight (g)',
+      'Stick Length (mm)',
+      'Tip Width S-S (mm)',
+      'Stick-to-Fittings Ratio'
+    ];
+    const corrVals = [-0.591, -0.452, -0.445, -0.376, -0.342, -0.249, 0.119, 0.170, 0.317, 0.417];
+
+    new Chart(document.getElementById('chartCorrBars'), {
+      type: 'bar',
+      data: {
+        labels: corrLabels,
+        datasets: [{
+          label: 'Pearson r with BP SCREW',
+          data: corrVals,
+          backgroundColor: corrVals.map(v => v < 0 ? 'rgba(248, 81, 73, 0.75)' : 'rgba(88, 166, 255, 0.75)'),
+          borderColor: corrVals.map(v => v < 0 ? '#f85149' : '#58a6ff'),
+          borderWidth: 1.2,
+          borderRadius: 4
+        }]
+      },
+      options: {
+        indexAxis: 'y',
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { min: -0.7, max: 0.6, grid: { color: '#21262d' }, title: { display: true, text: 'Pearson Correlation (r)' } },
+          y: { grid: { display: false } }
+        }
+      }
+    });
+
+    // 5. Interactive 2D PCA Biplot (PC1 vs PC2 + Eigenvector Arrows)
+    const schoolColors = {
+      'French': '#58a6ff',
+      'German': '#f0883e',
+      'English': '#3fb950',
+      'American': '#d4af37',
+      'Swiss': '#bc8cff'
+    };
+
+    const pcaDatasets = Object.keys(schoolColors).map(school => ({
+      label: `${school} (n=${BOWS.filter(b => b.school === school).length})`,
+      data: BOWS.filter(b => b.school === school).map(b => ({ x: b.pc1, y: b.pc2, bow: b })),
+      backgroundColor: schoolColors[school],
+      borderColor: '#ffffff',
+      pointRadius: 6.5,
+      pointHoverRadius: 9
+    }));
+
+    const loadingVectors = [
+      { name: 'Frog Top Width (Back)', x: 0.424 * 6.5, y: 0.046 * 6.5 },
+      { name: 'Handle Width (S-S)', x: 0.406 * 6.5, y: 0.012 * 6.5 },
+      { name: 'Tip Width (T-B)', x: 0.306 * 6.5, y: -0.118 * 6.5 },
+      { name: 'BP SCREW (mm)', x: 0.102 * 6.5, y: 0.384 * 6.5 },
+      { name: 'Screw Weight (g)', x: -0.130 * 6.5, y: -0.310 * 6.5 },
+      { name: 'Mid-Stick Width (T-B)', x: 0.147 * 6.5, y: -0.301 * 6.5 }
+    ];
+
+    const vectorArrowPlugin = {
+      id: 'vectorArrows',
+      afterDatasetsDraw(chart) {
+        const { ctx, scales: { x, y } } = chart;
+        const ox = x.getPixelForValue(0);
+        const oy = y.getPixelForValue(0);
+
+        ctx.save();
+        loadingVectors.forEach(v => {
+          const tx = x.getPixelForValue(v.x);
+          const ty = y.getPixelForValue(v.y);
+
+          ctx.beginPath();
+          ctx.moveTo(ox, oy);
+          ctx.lineTo(tx, ty);
+          ctx.strokeStyle = 'rgba(248, 81, 73, 0.65)';
+          ctx.lineWidth = 1.8;
+          ctx.stroke();
+
+          // Arrowhead
+          const angle = Math.atan2(ty - oy, tx - ox);
+          ctx.beginPath();
+          ctx.moveTo(tx, ty);
+          ctx.lineTo(tx - 8 * Math.cos(angle - Math.PI / 6), ty - 8 * Math.sin(angle - Math.PI / 6));
+          ctx.lineTo(tx - 8 * Math.cos(angle + Math.PI / 6), ty - 8 * Math.sin(angle + Math.PI / 6));
+          ctx.closePath();
+          ctx.fillStyle = '#f85149';
+          ctx.fill();
+
+          ctx.font = 'bold 11px -apple-system, sans-serif';
+          ctx.fillStyle = '#ffa198';
+          ctx.fillText(v.name, tx + (v.x >= 0 ? 6 : -95), ty + (v.y >= 0 ? -5 : 12));
+        });
+        ctx.restore();
+      }
+    };
+
+    new Chart(document.getElementById('chartPCA'), {
+      type: 'scatter',
+      data: { datasets: pcaDatasets },
+      plugins: [vectorArrowPlugin],
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#f0f6fc' } },
+          tooltip: {
+            callbacks: {
+              label: c => {
+                const b = c.raw.bow;
+                return `${b.maker} (${b.id}, ${b.school}) — PC1: ${b.pc1.toFixed(2)}, PC2: ${b.pc2.toFixed(2)} | ${b.wt}g, BP ${b.bp}mm`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: 'PC1: Handle & Upper-Frog Bulk (20.5% Variance)' },
+            min: -3.6, max: 7.5,
+            grid: { color: ctx => ctx.tick.value === 0 ? '#8b949e' : '#21262d' }
+          },
+          y: {
+            title: { display: true, text: 'PC2: Outward Balance vs. Screw/Mid-Stick Mass (17.3% Variance)' },
+            min: -4.8, max: 4.5,
+            grid: { color: ctx => ctx.tick.value === 0 ? '#8b949e' : '#21262d' }
+          }
+        }
+      }
+    });
+  </script>
+</body>
+</html>
